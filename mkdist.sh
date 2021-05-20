@@ -23,3 +23,4 @@ cd $BASE_DIR
 
 mkdir $DISTRO_DIR
 cp $SOFUNC_BUILD/$SOFUNC_LIB $DISTRO_DIR
+cp rpc_src/* $DISTRO_DIR
