@@ -3,6 +3,20 @@
 import pika
 import sys
 import os
+import pathlib
+import ctypes
+
+cpp_sopath = pathlib.Path().absolute() / "libsofuncs.so"
+
+def add_two_cpp(one, two):
+    cpp_so = ctypes.CDLL(cpp_sopath)
+    cpp_so.sum_ints.restype = ctypes.c_ulonglong
+    return cpp_so.sum_ints(one, two)
+
+def mul_two_cpp(one, two):
+    cpp_so = ctypes.CDLL(cpp_sopath)
+    cpp_so.mul_ints.restype = ctypes.c_ulonglong
+    return cpp_so.mul_ints(one, two)
 
 def main():
     def callback(ch, method, properties, body):
