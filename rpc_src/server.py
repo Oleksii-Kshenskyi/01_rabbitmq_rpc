@@ -5,8 +5,13 @@ import sys
 import os
 import pathlib
 import ctypes
+import json
 
 cpp_sopath = pathlib.Path().absolute() / "libsofuncs.so"
+json_credpath = pathlib.Path().absolute() / "creds.json"
+
+def get_creds_from(path):
+    return json.loads(open(path, "r").read())
 
 def add_two_cpp(one, two):
     cpp_so = ctypes.CDLL(cpp_sopath)
@@ -55,11 +60,10 @@ def on_request(ch, method, props, body):
 
 
 def main():
-    if(len(sys.argv) < 2):
-        print("NOPE")
-        os._exit(1)
-    host = sys.argv[1]
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+    creds = get_creds_from(json_credpath)
+    host = creds['host']
+    pika_creds = pika.PlainCredentials(creds['user'], creds['pass'])
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host, 5672, "/", pika_creds))
     channel = connection.channel()
 
     channel.queue_declare('rpcdemo')
@@ -72,6 +76,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        get_creds_from(json_credpath)
         main()
     except KeyboardInterrupt:
         print("[Ctrl + C] pressed, exiting...")

@@ -4,6 +4,8 @@ import pika
 import sys
 import os
 import uuid
+import pathlib
+import json
 corr_id = str(uuid.uuid4())
 response = ''
 def on_response(ch, method, props, body):
@@ -11,10 +13,16 @@ def on_response(ch, method, props, body):
         globals()['response'] = str(body, "utf-8")
         print(f"!!! GOT RESPONSE: {response}")
 
+json_credpath = pathlib.Path().absolute() / "creds.json"
+
+def get_creds_from(path):
+    return json.loads(open(path, "r").read())
 
 # establishing connection
-host = sys.argv[1]
-connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+creds = get_creds_from(json_credpath)
+host = creds['host']
+pika_creds = pika.PlainCredentials(creds['user'], creds['pass'])
+connection = pika.BlockingConnection(pika.ConnectionParameters(host, 5672, "/", pika_creds))
 channel = connection.channel()
 
 result = channel.queue_declare('', exclusive=True)
@@ -25,12 +33,12 @@ channel.basic_consume(auto_ack=True,
                       on_message_callback=on_response)
 
 # preparing request from cmdline arguments
-if(len(sys.argv) < 5):
+if(len(sys.argv) < 4):
     print("NOPE")
     os._exit(1)
-num1 = sys.argv[2]
-op = sys.argv[3]
-num2 = sys.argv[4]
+num1 = sys.argv[1]
+op = sys.argv[2]
+num2 = sys.argv[3]
 request = " ".join([num1, op, num2])
 
 channel.basic_publish(exchange='',
