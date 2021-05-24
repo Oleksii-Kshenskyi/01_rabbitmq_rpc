@@ -13,7 +13,8 @@ def on_response(ch, method, props, body):
 
 
 # establishing connection
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+host = sys.argv[1]
+connection = pika.BlockingConnection(pika.ConnectionParameters(host))
 channel = connection.channel()
 
 result = channel.queue_declare('', exclusive=True)
@@ -24,12 +25,12 @@ channel.basic_consume(auto_ack=True,
                       on_message_callback=on_response)
 
 # preparing request from cmdline arguments
-if(len(sys.argv) < 4):
+if(len(sys.argv) < 5):
     print("NOPE")
     os._exit(1)
-num1 = sys.argv[1]
-op = sys.argv[2]
-num2 = sys.argv[3]
+num1 = sys.argv[2]
+op = sys.argv[3]
+num2 = sys.argv[4]
 request = " ".join([num1, op, num2])
 
 channel.basic_publish(exchange='',

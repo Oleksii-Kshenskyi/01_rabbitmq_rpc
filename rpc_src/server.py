@@ -55,7 +55,11 @@ def on_request(ch, method, props, body):
 
 
 def main():
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    if(len(sys.argv) < 2):
+        print("NOPE")
+        os._exit(1)
+    host = sys.argv[1]
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host))
     channel = connection.channel()
 
     channel.queue_declare('rpcdemo')
